@@ -3,9 +3,12 @@
  * Maneja las peticiones HTTP relacionadas con usuarios
  */
 
-const { sendSuccess, sendError } = require('../handlers/responseHandler');
-const usuarioService = require('../services/usuarioService');
-const { createUsuarioSchema, updateUsuarioSchema } = require('../validations/usuarioValidation');
+const { sendSuccess, sendError } = require("../handlers/responseHandler");
+const usuarioService = require("../services/usuarioService");
+const {
+  createUsuarioSchema,
+  updateUsuarioSchema,
+} = require("../validations/usuarioValidation");
 
 /**
  * POST /usuarios
@@ -19,9 +22,9 @@ const crearUsuario = async (req, res) => {
     if (error) {
       return sendError(
         res,
-        'Error en validación de datos',
+        "Error en validación de datos",
         400,
-        error.details.map(err => err.message)
+        error.details.map((err) => err.message),
       );
     }
 
@@ -29,15 +32,10 @@ const crearUsuario = async (req, res) => {
     const usuarioCreado = await usuarioService.crearUsuario(value);
 
     // 3. Respondemos con éxito
-    return sendSuccess(
-      res,
-      usuarioCreado,
-      'Usuario creado exitosamente',
-      201
-    );
+    return sendSuccess(res, usuarioCreado, "Usuario creado exitosamente", 201);
   } catch (error) {
     console.error(error);
-    return sendError(res, 'Error al crear usuario', 500);
+    return sendError(res, "Error al crear usuario", 500);
   }
 };
 
@@ -47,11 +45,11 @@ const crearUsuario = async (req, res) => {
  */
 const obtenerTodosLosUsuarios = async (req, res) => {
   try {
-    // TODO: Paso 1 - Llamar al servicio obtenerTodosLosUsuarios()
-    // TODO: Paso 2 - Retornar los usuarios con sendSuccess()
-    return sendError(res, 'Endpoint no implementado', 501);
+    const usuarios = await usuarioService.obtenerTodosLosUsuarios();
+
+    return sendSuccess(res, usuarios, "Usuarios obtenidos exitosamente");
   } catch (error) {
-    return sendError(res, 'Error al obtener usuarios', 500);
+    return sendError(res, "Error al obtener usuarios", 500);
   }
 };
 
@@ -62,12 +60,16 @@ const obtenerTodosLosUsuarios = async (req, res) => {
 const obtenerUsuarioPorId = async (req, res) => {
   try {
     const { id } = req.params;
-    // TODO: Paso 1 - Llamar al servicio obtenerUsuarioPorId(id)
-    // TODO: Paso 2 - Si no existe (null), retornar sendError con 404
-    // TODO: Paso 3 - Si existe, retornar con sendSuccess()
-    return sendError(res, 'Endpoint no implementado', 501);
+
+    const usuario = await usuarioService.obtenerUsuarioPorId(id);
+
+    if (!usuario) {
+      return sendError(res, "Usuario no encontrado", 404);
+    }
+
+    return sendSuccess(res, usuario, "Usuario obtenido exitosamente");
   } catch (error) {
-    return sendError(res, 'Error al obtener usuario', 500);
+    return sendError(res, "Error al obtener usuario", 500);
   }
 };
 
@@ -77,14 +79,34 @@ const obtenerUsuarioPorId = async (req, res) => {
  */
 const actualizarUsuario = async (req, res) => {
   try {
-    // TODO: Paso 1 - Validar los datos con updateUsuarioSchema
-    // TODO: Paso 2 - Obtener el ID de req.params
-    // TODO: Paso 3 - Llamar al servicio actualizarUsuario(id, value)
-    // TODO: Paso 4 - Si retorna null, enviar error 404
-    // TODO: Paso 5 - Si todo está bien, responder con sendSuccess()
-    return sendError(res, 'Endpoint no implementado', 501);
+    const { id } = req.params;
+    const { error, value } = updateUsuarioSchema.validate(req.body);
+
+    if (error) {
+      return sendError(
+        res,
+        "Error en validación de datos",
+        400,
+        error.details.map((err) => err.message),
+      );
+    }
+
+    const usuarioActualizado = await usuarioService.actualizarUsuario(
+      id,
+      value,
+    );
+
+    if (!usuarioActualizado) {
+      return sendError(res, "Usuario no encontrado", 404);
+    }
+
+    return sendSuccess(
+      res,
+      usuarioActualizado,
+      "Usuario actualizado exitosamente",
+    );
   } catch (error) {
-    return sendError(res, 'Error al actualizar usuario', 500);
+    return sendError(res, "Error al actualizar usuario", 500);
   }
 };
 
@@ -95,12 +117,16 @@ const actualizarUsuario = async (req, res) => {
 const eliminarUsuario = async (req, res) => {
   try {
     const { id } = req.params;
-    // TODO: Paso 1 - Llamar al servicio eliminarUsuario(id)
-    // TODO: Paso 2 - Si retorna false, enviar error 404
-    // TODO: Paso 3 - Responder con sendSuccess()
-    return sendError(res, 'Endpoint no implementado', 501);
+
+    const eliminado = await usuarioService.eliminarUsuario(id);
+
+    if (!eliminado) {
+      return sendError(res, "Usuario no encontrado", 404);
+    }
+
+    return sendSuccess(res, null, "Usuario eliminado exitosamente");
   } catch (error) {
-    return sendError(res, 'Error al eliminar usuario', 500);
+    return sendError(res, "Error al eliminar usuario", 500);
   }
 };
 
@@ -109,5 +135,5 @@ module.exports = {
   obtenerTodosLosUsuarios,
   obtenerUsuarioPorId,
   actualizarUsuario,
-  eliminarUsuario
+  eliminarUsuario,
 };
